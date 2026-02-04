@@ -25,7 +25,7 @@ class TicketOutput(BaseModel):
     suggested_actions: list[str]
     draft_reply: str
 
-    citations: list[dict]
+    citations: list[Citation]
     risk_flags: list[str]
 
     usage: dict
