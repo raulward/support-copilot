@@ -1,52 +1,91 @@
 import json
-from typing import List, Optional
-
+import os
+from typing import List, Optional, Tuple
 from openai import OpenAI
+from app.core.schemas import Citation, Chunk
 
-from app.core.schemas import Citation
 
-client = OpenAI()
 
-def build_specialist_prompt(ticket_message: str, citations: List[Citation]) -> str:
+_client: OpenAI | None = None
+
+def get_client() -> OpenAI:
+    global _client
+    if _client is None:
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise RuntimeError("OPENAI_API_KEY não configurada.")
+        _client = OpenAI(api_key=api_key)
+    return _client
+
+
+def build_specialist_prompt(
+    ticket_message: str,
+    context_chunks: List[Tuple[Chunk, int]],
+) -> str:
     ctx = []
-
-    for i, c in enumerate(citations, start=1):
-        ctx.append(f"[{i}] doc_id={c.doc_id} score={c.score}\n{c.snippet}")
+    for i, (ch, score) in enumerate(context_chunks, start=1):
+        text = ch.text[:1800].strip()
+        ctx.append(f"[{i}] doc_id={ch.doc_id} chunk_id={ch.chunk_id} score={score}\n{text}")
 
     context_block = "\n\n".join(ctx) if ctx else "(sem contexto recuperado)"
 
     return (
-        """Você é um especialista de suporte técnico.
-        Responda em português, tom profissional e direto.\n\n
-        Regras:\n
-        - Use APENAS o contexto fornecido em 'Contexto (KB)'.\n
-        - Se o contexto não for suficiente, faça perguntas de diagnóstico e NÃO invente procedimento.\n
-        - Não peça senha, código 2FA ou tokens.\n
-        - Retorne SOMENTE um JSON válido, sem texto extra.\n\n
-        Formato JSON esperado:\n
-        {\n
-          draft_reply": "string",\n
-          diagnostic_questions": ["..."],\n
-          suggested_actions": ["..."]\n
-        }\n\n"
+        "Você é um especialista de suporte técnico.\n"
+        "Responda em português, tom profissional e direto.\n\n"
+        "Regras obrigatórias:\n"
+        "1) Se houver 'Contexto (KB)' (não vazio), você DEVE:\n"
+        "   - Incluir 2 ou 3 orientações concretas extraídas do KB (procedimento/ações).\n"
+        "   - Fazer no máximo 3 perguntas de diagnóstico, preferindo as do KB.\n"
+        "2) Se NÃO houver contexto suficiente, você deve apenas:\n"
+        "   - Fazer no máximo 3 perguntas de diagnóstico.\n"
+        "   - Não sugerir procedimento específico.\n"
+        "3) Nunca peça senha, código 2FA ou tokens.\n"
+        "4) suggested_actions deve ter pelo menos 2 itens quando houver KB.\n"
+        "5) não repita as perguntas no draft_reply; retorne-as apenas em diagnostic_questions"
+        "6) Retorne SOMENTE o JSON que segue o schema.\n\n"
         f"Ticket:\n{ticket_message}\n\n"
-        f"Contexto (KB):\n{context_block}\n"""
+        f"Contexto (KB):\n{context_block}\n"
     )
 
 
-def speacilist_generate(
+
+def specialist_generate(
         ticket_message: str,
-        citations: List[Citation],
+        context_chunks: List[Tuple[Chunk, int]],
         model: str = "gpt-4o-mini"
 ) -> dict:
 
-    prompt = build_specialist_prompt(ticket_message, citations)
+    client = get_client()
+
+    prompt = build_specialist_prompt(ticket_message, context_chunks)
 
     resp = client.responses.create(
-        model = model,
-        input = prompt,
-        reasoning = {"effort": "low"}
+        model=model,
+        input=prompt,
+        text={
+            "format": {
+                "type": "json_schema",
+                "name": "SupportReply",
+                "schema": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {
+                        "draft_reply": {"type": "string"},
+                        "diagnostic_questions": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
+                        "suggested_actions": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
+                    },
+                    "required": ["draft_reply", "diagnostic_questions", "suggested_actions"],
+                },
+            }
+        },
     )
+
 
     text = resp.output_text.strip()
 

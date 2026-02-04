@@ -5,8 +5,7 @@ from app.core.logging import get_logger
 from app.core.schemas import TicketInput, TicketOutput
 from app.rag.retriver import load_chunks, retriver
 from app.core.schemas import Citation, Chunk
-
-
+from app.agents.specialist import specialist_generate
 
 logger = get_logger()
 
@@ -58,6 +57,8 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
 
     kb_chunks = _get_kb_chunks()
     retrieved = retriver(payload.message, kb_chunks, top_k=3, min_score=1)
+    context_chunks = [(chunk, score) for chunk, score in retrieved][:2]
+
 
     citations: List[Citation] = []
     for chunk, score in retrieved:
@@ -68,6 +69,13 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
         f"request_id={request_id} retrieval_count={len(citations)} "
         f"retrieval_docs={[c.doc_id for c in citations]}"
     )
+
+    llm_out = specialist_generate(
+        ticket_message=payload.message,
+        context_chunks=context_chunks,
+        model="gpt-4o-mini",
+    )
+
 
     suggested_actions = []
 
@@ -80,21 +88,15 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
 
     summary = payload.message.strip()[:180]
 
-    diagnostic_questions = [
-        "Você pode informar o e-mail/ID do usuário afetado?",
-        "Quando o problema começou e com que frequência acontece?",
-        "Você consegue reproduzir? Se sim, quais passos?",
-    ]
+    draft_reply = []
+    diagnostic_questions = []
 
+    draft_reply = llm_out.get("draft_reply", draft_reply)
+    diagnostic_questions = llm_out.get("diagnostic_questions", diagnostic_questions)
 
-    draft_reply = (
-        "Recebemos seu chamado e já iniciamos a análise. "
-        "Para avançar mais rápido, poderia confirmar: (1) ID/e-mail do usuário, "
-        "(2) quando começou, e (3) passos para reproduzir? "
-        "Com isso, seguimos com a solução e te atualizamos com o próximo passo."
-    )
+    logger.info(f"request_id={request_id} specialist_model=gpt-4o-mini specialist_ok=True")
 
-    risk_flags = []  # Guard Agent vai preencher
+    risk_flags = []
 
     elapsed_ms = (perf_counter() - t0) * 1000
     usage = {
