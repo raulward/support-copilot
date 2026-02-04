@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from dataclasses import dataclass
 
 class TicketInput(BaseModel):
     ticket_id: str
@@ -23,3 +24,10 @@ class TicketOutput(BaseModel):
     risk_flags: list[str]
 
     usage: dict
+
+
+@dataclass
+class Chunk:
+    doc_id: str
+    chunk_id: str
+    text: str

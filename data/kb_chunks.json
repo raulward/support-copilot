@@ -1,0 +1,72 @@
+[
+  {
+    "doc_id": "acesso_2fa",
+    "chunk_id": "acesso_2fa::c0",
+    "text": "# 2FA não chega ou falha na autenticação\n\n## Quando usar\n- Quando o usuário relata que o código de verificação (2FA) não chega.\n- Quando o usuário recebe erro ao validar o código (código inválido/expirado).\n- Quando o usuário troca de celular e perde acesso ao método de 2FA.\n\n## Sintomas comuns\n- “Não recebo o código por SMS/e-mail/app.”\n- “O código chega, mas dá inválido.”\n- “Meu celular trocou e perdi o autenticador.”\n- “Minha conta ficou bloqueada após várias tentativas.”\n\n## Procedimento\n1. Confirmar o método de 2FA configurado (SMS, e-mail, aplicativo autenticador).\n2. Validar se o usuário está usando o mesmo e-mail/telefone cadastrado.\n3. Pedir para o usuário checar:\n   - pasta de spam (se for e-mail)\n   - bloqueio de SMS / modo avião (se for SMS)\n   - horário automático do aparelho (se for app autenticador)\n4. Se for SMS:\n   - confirmar DDD e número completo\n   - orientar tentar novamente após 2–3 minutos\n5. Se for e-mail:\n   - orientar adicionar o remetente à lista segura\n   - tentar reenviar e checar spam/lixo eletrônico\n6. Se for app autenticador:\n   - confirmar se o relógio do celular está em “ajuste automático”\n   - orientar remover e reconfigurar o autenticador (se apl"
+  },
+  {
+    "doc_id": "acesso_2fa",
+    "chunk_id": "acesso_2fa::c1",
+    "text": "tentar reenviar e checar spam/lixo eletrônico\n6. Se for app autenticador:\n   - confirmar se o relógio do celular está em “ajuste automático”\n   - orientar remover e reconfigurar o autenticador (se aplicável)\n7. Se houver bloqueio por tentativas:\n   - informar tempo de bloqueio (ex.: 15 minutos) e orientar aguardar\n8. Persistindo o problema:\n   - coletar evidências mínimas (horário aproximado, método, prints, e-mail/ID)\n   - seguir para escalonamento\n\n## Perguntas de diagnóstico\n- Qual método de 2FA você usa (SMS, e-mail ou app autenticador)?\n- Qual é o e-mail/telefone cadastrado na conta?\n- Desde quando o problema ocorre? Acontece em todas as tentativas?\n- Você trocou de celular/operadora recentemente?\n- Você consegue receber outros SMS/e-mails normalmente?\n- Pode enviar um print do erro (se houver)?\n\n## Escalonamento\n- Quando escalar:\n  - Falha persistente após seguir o procedimento\n  - Vários usuários afetados simultaneamente\n  - Indícios de instabilidade do serviço de autenticação\n- Para quem escalar:\n  - Time técnico responsável por autenticação/infra\n- Evidências mínimas:\n  - ID/e-mail do usuário\n  - método de 2FA\n  - horário aproximado das tentativas\n  - prints/erros exibidos"
+  },
+  {
+    "doc_id": "acesso_2fa",
+    "chunk_id": "acesso_2fa::c2",
+    "text": "Para quem escalar:\n  - Time técnico responsável por autenticação/infra\n- Evidências mínimas:\n  - ID/e-mail do usuário\n  - método de 2FA\n  - horário aproximado das tentativas\n  - prints/erros exibidos\n  - região/operadora (se SMS)"
+  },
+  {
+    "doc_id": "acesso_reset_senha",
+    "chunk_id": "acesso_reset_senha::c0",
+    "text": "# Reset de senha e recuperação de acesso\n\n## Quando usar\n- Quando o usuário esqueceu a senha.\n- Quando o usuário informa que a senha não funciona.\n- Quando a conta foi bloqueada por tentativas incorretas.\n- Quando o usuário solicita redefinição manual de senha.\n\n## Sintomas comuns\n- “Esqueci minha senha.”\n- “Minha senha não funciona, mesmo estando correta.”\n- “Minha conta foi bloqueada.”\n- “Não recebo o e-mail de redefinição.”\n\n## Procedimento\n1. Confirmar o e-mail ou ID do usuário.\n2. Orientar o uso da opção oficial de “Esqueci minha senha”.\n3. Verificar se o e-mail de redefinição foi enviado:\n   - orientar checar spam/lixo eletrônico\n   - orientar aguardar alguns minutos antes de tentar novamente\n4. Confirmar se o link de redefinição:\n   - não expirou\n   - não foi usado anteriormente\n5. Se a conta estiver bloqueada:\n   - informar o tempo de bloqueio automático (ex.: 15 minutos)\n   - orientar aguardar antes de nova tentativa\n6. Se o usuário não receber o e-mail:\n   - confirmar se o e-mail está correto no cadastro\n   - orientar adicionar o remetente à lista segura\n7. Persistindo o problema:\n   - coletar evidências mínimas\n   - escalar para redefinição manual ou verificação técnica"
+  },
+  {
+    "doc_id": "acesso_reset_senha",
+    "chunk_id": "acesso_reset_senha::c1",
+    "text": "mail está correto no cadastro\n   - orientar adicionar o remetente à lista segura\n7. Persistindo o problema:\n   - coletar evidências mínimas\n   - escalar para redefinição manual ou verificação técnica\n\n## Perguntas de diagnóstico\n- Qual é o e-mail/ID cadastrado na conta?\n- Você tentou redefinir a senha recentemente?\n- Recebeu algum erro ou mensagem específica?\n- O e-mail de redefinição chegou ao spam?\n- A conta foi bloqueada após tentativas incorretas?\n\n## Escalonamento\n- Quando escalar:\n  - E-mail de redefinição não enviado após múltiplas tentativas\n  - Conta bloqueada sem"
+  },
+  {
+    "doc_id": "agendamento_conflitos",
+    "chunk_id": "agendamento_conflitos::c0",
+    "text": "# Agendamento: conflito de horários, reagendamento e confirmações\n\n## Quando usar\n- Quando o usuário relata conflito de agenda (horário já ocupado).\n- Quando o agendamento não confirma ou não envia notificação.\n- Quando há necessidade de reagendar sem perder o histórico.\n- Quando há dúvidas sobre fuso horário.\n\n## Sintomas comuns\n- “O sistema não deixa agendar porque o horário está ocupado.”\n- “Agendei, mas não recebi confirmação.”\n- “O cliente marcou, mas não apareceu no calendário.”\n- “O horário ficou errado (fuso).”\n- “Preciso reagendar sem cancelar.”\n\n## Procedimento\n1. Confirmar o fuso horário do usuário e do sistema:\n   - orientar manter fuso e horário do dispositivo em automático\n2. Validar regras de disponibilidade:\n   - janelas de atendimento\n   - duração padrão do evento\n   - tempo mínimo de antecedência (ex.: 30 min/1h)\n3. Em caso de conflito:\n   - sugerir 3 horários alternativos próximos (antes/depois)\n   - verificar se existem buffers entre reuniões (ex.: 10–15 min)\n4. Em caso de falta de confirmação/notificação:\n   - checar se o e-mail/telefone do destinatário está correto\n   - orientar checar spam (se e-mail)\n   - checar bloqueios de notificações no dispositivo\n5. Em"
+  },
+  {
+    "doc_id": "agendamento_conflitos",
+    "chunk_id": "agendamento_conflitos::c1",
+    "text": "caso de falta de confirmação/notificação:\n   - checar se o e-mail/telefone do destinatário está correto\n   - orientar checar spam (se e-mail)\n   - checar bloqueios de notificações no dispositivo\n5. Em reagendamento:\n   - registrar motivo do reagendamento\n   - manter histórico do agendamento anterior (para rastreabilidade)\n6. Se houver integração com calendário (Google/Outlook):\n   - confirmar permissão e sincronização\n   - checar se houve revogação de acesso\n7. Persistindo o problema:\n   - coletar evidências mínimas e escalar\n\n## Perguntas de diagnóstico\n- Qual horário você tentou agendar (data e hora)?\n- Qual é o seu fuso horário e o do cliente?\n- O conflito acontece para todos os horários ou apenas alguns?\n- Você está usando integração com calendário? Qual (Google/Outlook)?\n- Houve mudança recente de permissões ou conta conectada?\n- O problema ocorre em web, celular ou ambos?\n\n## Escalonamento\n- Quando escalar:\n  - Conflitos incoerentes (agenda livre mas sistema acusa ocupado)\n  - Notificações falhando para muitos usuários\n  - Integração de calendário com erro recorrente\n- Para quem escalar:\n  - Time técnico responsável por integrações/agenda\n- Evidências mínimas:\n  - ID do event"
+  },
+  {
+    "doc_id": "agendamento_conflitos",
+    "chunk_id": "agendamento_conflitos::c2",
+    "text": "tificações falhando para muitos usuários\n  - Integração de calendário com erro recorrente\n- Para quem escalar:\n  - Time técnico responsável por integrações/agenda\n- Evidências mínimas:\n  - ID do evento (se existir)\n  - data/hora e fuso\n  - e-mails envolvidos\n  - prints do erro\n  - informação da integração (Google/Outlook) e status de permissão"
+  },
+  {
+    "doc_id": "incidentes_primeiros_passos",
+    "chunk_id": "incidentes_primeiros_passos::c0",
+    "text": "# Incidentes: primeiros passos e triagem inicial\n\n## Quando usar\n- Quando o sistema apresenta instabilidade ou indisponibilidade.\n- Quando múltiplos usuários relatam erro ao mesmo tempo.\n- Quando há aumento significativo de latência ou falhas.\n- Quando um serviço crítico está fora do ar.\n\n## Sintomas comuns\n- “O sistema está fora do ar.”\n- “Está muito lento.”\n- “Recebo erro 500/502.”\n- “Funcionava antes e parou de repente.”\n- “Vários usuários reclamando do mesmo problema.”\n\n## Procedimento\n1. Confirmar o impacto:\n   - quantos usuários afetados\n   - quais funcionalidades estão indisponíveis\n2. Confirmar o horário aproximado do início do incidente.\n3. Verificar se o problema é:\n   - total (serviço fora do ar)\n   - parcial (apenas algumas funções)\n4. Checar se houve mudanças recentes:\n   - deploy\n   - configuração\n   - integração externa\n5. Orientar ações imediatas:\n   - tentar reproduzir o erro\n   - coletar mensagens/códigos de erro\n6. Se houver workaround conhecido:\n   - informar o usuário claramente\n7. Registrar o incidente:\n   - abrir ticket interno de incidente\n   - documentar status e próximos passos\n\n## Perguntas de diagnóstico\n- Desde quando o problema ocorre?\n- O problema aco"
+  },
+  {
+    "doc_id": "incidentes_primeiros_passos",
+    "chunk_id": "incidentes_primeiros_passos::c1",
+    "text": "rio claramente\n7. Registrar o incidente:\n   - abrir ticket interno de incidente\n   - documentar status e próximos passos\n\n## Perguntas de diagnóstico\n- Desde quando o problema ocorre?\n- O problema acontece para todos os usuários?\n- Qual erro ou mensagem aparece?\n- Alguma ação foi realizada antes do problema (deploy, configuração)?\n- O problema ocorre em todos os canais (web, mobile, API)?\n\n## Escalonamento\n- Quando escalar:\n  - Impacto alto ou crítico (P0/P1)\n  - Afeta múltiplos clientes\n  - Serviço essencial indisponível\n- Para quem escalar:\n  - Time técnico responsável pela infraestrutura/serviço\n- Evidências mínimas:\n  - horário do início\n  - mensagens/códigos de erro\n  - serviços afetados\n  - prints/logs disponíveis"
+  },
+  {
+    "doc_id": "integracoes_webhoook",
+    "chunk_id": "integracoes_webhoook::c0",
+    "text": "# Integrações via Webhook e APIs\n\n## Quando usar\n- Quando o cliente relata que dados não estão sincronizando.\n- Quando eventos não chegam ao sistema integrado.\n- Quando há erro ao configurar webhook ou endpoint.\n- Quando há dúvidas sobre autenticação ou formato de payload.\n\n## Sintomas comuns\n- “O webhook não dispara.”\n- “Os dados não chegam no sistema.”\n- “Recebo erro 401/403 no webhook.”\n- “O endpoint retorna erro 500.”\n- “A integração funcionava e parou.”\n\n## Procedimento\n1. Confirmar o endpoint configurado:\n   - URL correta\n   - método HTTP esperado (POST/PUT)\n2. Validar autenticação:\n   - token/chave configurada corretamente\n   - token não expirado ou revogado\n3. Verificar formato do payload:\n   - campos obrigatórios\n   - tipo de conteúdo (JSON)\n4. Testar o endpoint manualmente (ex.: curl/Postman):\n   - confirmar resposta HTTP\n5. Checar logs do sistema de origem:\n   - tentativas de envio\n   - códigos de resposta\n6. Checar logs do sistema de destino:\n   - recebimento do evento\n   - erros de processamento\n7. Se a integração parou de funcionar:\n   - verificar mudanças recentes (deploy, alteração de schema)\n   - validar se houve bloqueio por rate limit\n8. Persistindo o problema:"
+  },
+  {
+    "doc_id": "integracoes_webhoook",
+    "chunk_id": "integracoes_webhoook::c1",
+    "text": "erros de processamento\n7. Se a integração parou de funcionar:\n   - verificar mudanças recentes (deploy, alteração de schema)\n   - validar se houve bloqueio por rate limit\n8. Persistindo o problema:\n   - coletar evidências mínimas\n   - escalar para análise técnica\n\n## Perguntas de diagnóstico\n- Qual é o endpoint configurado?\n- Qual evento deveria ser enviado?\n- O erro ocorre em todas as tentativas ou apenas algumas?\n- Há"
+  },
+  {
+    "doc_id": "seguranca_pii",
+    "chunk_id": "seguranca_pii::c0",
+    "text": "# Segurança e dados sensíveis (PII)\n\n## Quando usar\n- Quando o usuário solicita ou envia dados sensíveis.\n- Quando há dúvidas sobre quais informações podem ser solicitadas.\n- Quando o atendimento envolve dados pessoais.\n- Quando há risco de exposição de informações.\n\n## Dados sensíveis (exemplos)\n- Senhas\n- Códigos de verificação (2FA)\n- Tokens de acesso\n- Dados bancários completos\n- Documentos pessoais (CPF, RG, etc.)\n\n## Procedimento\n1. Nunca solicitar senhas, códigos de verificação ou tokens.\n2. Evitar solicitar dados pessoais desnecessários.\n3. Quando precisar confirmar identidade:\n   - solicitar apenas identificadores não sensíveis (ex.: e-mail cadastrado)\n4. Orientar o usuário a não enviar dados sensíveis por chat ou e-mail.\n5. Se o usuário enviar dados sensíveis espontaneamente:\n   - não repetir os dados na resposta\n   - orientar a remover/ocultar a informação\n6. Seguir políticas internas de privacidade e segurança.\n7. Em caso de suspeita de vazamento:\n   - interromper o atendimento normal\n   - registrar incidente de segurança\n   - escalar imediatamente\n\n## Perguntas de diagnóstico\n- Qual informação é realmente necessária para resolver o problema?\n- Existe uma alternativa se"
+  },
+  {
+    "doc_id": "seguranca_pii",
+    "chunk_id": "seguranca_pii::c1",
+    "text": "ento normal\n   - registrar incidente de segurança\n   - escalar imediatamente\n\n## Perguntas de diagnóstico\n- Qual informação é realmente necessária para resolver o problema?\n- Existe uma alternativa sem uso de dados sensíveis?\n- O dado solicitado está de acordo co"
+  }
+]
