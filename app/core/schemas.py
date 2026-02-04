@@ -7,18 +7,19 @@ class TicketInput(BaseModel):
 
 
 class TicketOutput(BaseModel):
+
+    request_id: str
+
     category: str
     priority: str
     confidence: float
 
     summary: str
     diagnostic_questions: list[str]
-    suggested_action: list[str]
+    suggested_actions: list[str]
     draft_reply: str
 
     citations: list[dict]
     risk_flags: list[str]
 
     usage: dict
-
-    
