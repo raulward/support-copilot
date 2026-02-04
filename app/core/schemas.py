@@ -6,6 +6,11 @@ class TicketInput(BaseModel):
     message: str
     channel: str
 
+class Citation(BaseModel):
+    doc_id: str
+    snippet: str
+    score: int
+
 
 class TicketOutput(BaseModel):
 

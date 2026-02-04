@@ -1,10 +1,24 @@
 import uuid
 from time import perf_counter
+from typing import List, Tuple
 from app.core.logging import get_logger
 from app.core.schemas import TicketInput, TicketOutput
+from app.rag.retriever import load_chunks, retrieve
+from app.core.schemas import Citation, Chunk
+
 
 
 logger = get_logger()
+
+_KB_CHUNKS: List[Chunk] | None = None
+
+
+def _get_kb_chunks() -> List[Chunk]:
+    global _KB_CHUNKS
+    if _KB_CHUNKS is None:
+        _KB_CHUNKS = load_chunks()
+    return _KB_CHUNKS
+
 
 
 def _fake_router(message: str):
@@ -42,6 +56,27 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
 
     category, priority, confidence = _fake_router(payload.message)
 
+    kb_chunks = _get_kb_chunks()
+    retrieved = retrieve(payload.message, kb_chunks, top_k=3, min_score=1)
+
+    citations: List[Citation] = []
+    for chunk, score in retrieved:
+        snippet = chunk.text[:280].strip()
+        citations.append(Citation(doc_id=chunk.doc_id, snippet=snippet, score=float(score)))
+
+    logger.info(
+        f"request_id={request_id} retrieval_count={len(citations)} "
+        f"retrieval_docs={[c.doc_id for c in citations]}"
+    )
+
+    if not citations:
+        suggested_actions = [
+            "Confirmar escopo/impacto (quantos usuários afetados)",
+            "Coletar evidências (prints, logs, horário aproximado)",
+            "Solicitar informações mínimas antes de aplicar um procedimento",
+        ]
+
+
     # Por enquanto: resumo simples (depois você troca por LLM)
     summary = payload.message.strip()[:180]
 
@@ -51,12 +86,6 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
         "Você consegue reproduzir? Se sim, quais passos?",
     ]
 
-    suggested_actions = [
-        "Confirmar escopo/impacto (quantos usuários afetados)",
-        "Coletar evidências (prints, logs, horário aproximado)",
-        "Aplicar procedimento padrão da categoria e validar a resolução",
-    ]
-
     draft_reply = (
         "Recebemos seu chamado e já iniciamos a análise. "
         "Para avançar mais rápido, poderia confirmar: (1) ID/e-mail do usuário, "
@@ -64,7 +93,6 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
         "Com isso, seguimos com a solução e te atualizamos com o próximo passo."
     )
 
-    citations = []   # RAG vai preencher
     risk_flags = []  # Guard Agent vai preencher
 
     elapsed_ms = (perf_counter() - t0) * 1000
