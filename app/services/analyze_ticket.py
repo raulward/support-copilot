@@ -3,7 +3,7 @@ from time import perf_counter
 from typing import List, Tuple
 from app.core.logging import get_logger
 from app.core.schemas import TicketInput, TicketOutput
-from app.rag.retriever import load_chunks, retrieve
+from app.rag.retriver import load_chunks, retriver
 from app.core.schemas import Citation, Chunk
 
 
@@ -57,7 +57,7 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
     category, priority, confidence = _fake_router(payload.message)
 
     kb_chunks = _get_kb_chunks()
-    retrieved = retrieve(payload.message, kb_chunks, top_k=3, min_score=1)
+    retrieved = retriver(payload.message, kb_chunks, top_k=3, min_score=1)
 
     citations: List[Citation] = []
     for chunk, score in retrieved:
@@ -69,6 +69,8 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
         f"retrieval_docs={[c.doc_id for c in citations]}"
     )
 
+    suggested_actions = []
+
     if not citations:
         suggested_actions = [
             "Confirmar escopo/impacto (quantos usuários afetados)",
@@ -76,8 +78,6 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
             "Solicitar informações mínimas antes de aplicar um procedimento",
         ]
 
-
-    # Por enquanto: resumo simples (depois você troca por LLM)
     summary = payload.message.strip()[:180]
 
     diagnostic_questions = [
@@ -85,6 +85,7 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
         "Quando o problema começou e com que frequência acontece?",
         "Você consegue reproduzir? Se sim, quais passos?",
     ]
+
 
     draft_reply = (
         "Recebemos seu chamado e já iniciamos a análise. "
