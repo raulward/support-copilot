@@ -9,7 +9,7 @@ class TicketInput(BaseModel):
 class Citation(BaseModel):
     doc_id: str
     snippet: str
-    score: int
+    score: float
 
 
 class TicketOutput(BaseModel):

@@ -9,6 +9,10 @@ from openai import OpenAI
 from app.core.schemas import Chunk
 from app.rag.base import BaseRetriever
 from app.rag.types import ChunkHit
+from app.rag.query_cache import QueryEmbeddingCache
+
+_query_cache = QueryEmbeddingCache(ttl_seconds=600)
+
 
 EMBED_MODEL = "text-embedding-3-small"
 
@@ -26,12 +30,20 @@ class FaissRetriever(BaseRetriever):
         self.meta = json.loads(META_PATH.read_text(encoding="utf-8"))
 
     def _embed_query(self, query: str) -> np.ndarray:
+        cached = _query_cache.get(query)
+
+        if cached is not None:
+            return cached
+
         resp = self.client.embeddings.create(
             model=EMBED_MODEL,
             input=[query],
         )
         vec = np.array(resp.data[0].embedding, dtype=np.float32).reshape(1, -1)
         faiss.normalize_L2(vec)
+
+        _query_cache.set(query, vec)
+
         return vec
 
     def retrieve(self, query: str, top_k: int = 3) -> List[ChunkHit]:

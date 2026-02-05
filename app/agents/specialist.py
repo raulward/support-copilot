@@ -20,7 +20,7 @@ def get_client() -> OpenAI:
 
 def build_specialist_prompt(
     ticket_message: str,
-    context_chunks: List[Tuple[Chunk, int]],
+    context_chunks: List[Tuple[Chunk, float]],
 ) -> str:
     ctx = []
     for i, (ch, score) in enumerate(context_chunks, start=1):
@@ -41,8 +41,9 @@ def build_specialist_prompt(
         "   - Não sugerir procedimento específico.\n"
         "3) Nunca peça senha, código 2FA ou tokens.\n"
         "4) suggested_actions deve ter pelo menos 2 itens quando houver KB.\n"
-        "5) não repita as perguntas no draft_reply; retorne-as apenas em diagnostic_questions"
-        "6) Retorne SOMENTE o JSON que segue o schema.\n\n"
+        "5) não repita as perguntas no draft_reply; retorne-as apenas em diagnostic_questions\n"
+        "6) Retorne SOMENTE o JSON que segue o schema.\n"
+        "7) NÃO escreva as perguntas dentro de draft_reply. Deixe perguntas apenas em diagnostic_questions.\n"
         f"Ticket:\n{ticket_message}\n\n"
         f"Contexto (KB):\n{context_block}\n"
     )

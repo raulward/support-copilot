@@ -5,7 +5,8 @@ from typing import List
 from app.core.logging import get_logger
 from app.core.schemas import TicketInput, TicketOutput, Citation
 from app.agents.specialist import specialist_generate, get_client
-from app.rag.faiss_retriever import FaissRetriever
+from app.core.config import settings
+from app.rag.factory import build_retriever
 
 logger = get_logger()
 
@@ -45,10 +46,10 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
     category, priority, confidence = _fake_router(payload.message)
 
 
-    retriever = FaissRetriever(client=get_client())
-    hits = retriever.retrieve(payload.message, top_k=3)
+    retriever = build_retriever(client=get_client())
+    hits = retriever.retrieve(payload.message, top_k=settings.faiss_top_k)
 
-    context_chunks = [(h.chunk, h.score) for h in hits[:2]]
+    context_chunks = [(h.chunk, h.score) for h in hits[:settings.faiss_context_k]]
 
 
     citations: List[Citation] = [
