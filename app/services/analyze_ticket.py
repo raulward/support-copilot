@@ -1,24 +1,13 @@
 import uuid
 from time import perf_counter
-from typing import List, Tuple
+from typing import List
+
 from app.core.logging import get_logger
-from app.core.schemas import TicketInput, TicketOutput
-from app.rag.retriver import load_chunks, retriver
-from app.core.schemas import Citation, Chunk
-from app.agents.specialist import specialist_generate
+from app.core.schemas import TicketInput, TicketOutput, Citation
+from app.agents.specialist import specialist_generate, get_client
+from app.rag.faiss_retriever import FaissRetriever
 
 logger = get_logger()
-
-_KB_CHUNKS: List[Chunk] | None = None
-
-
-def _get_kb_chunks() -> List[Chunk]:
-    global _KB_CHUNKS
-    if _KB_CHUNKS is None:
-        _KB_CHUNKS = load_chunks()
-    return _KB_CHUNKS
-
-
 
 def _fake_router(message: str):
 
@@ -55,19 +44,25 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
 
     category, priority, confidence = _fake_router(payload.message)
 
-    kb_chunks = _get_kb_chunks()
-    retrieved = retriver(payload.message, kb_chunks, top_k=3, min_score=1)
-    context_chunks = [(chunk, score) for chunk, score in retrieved][:2]
+
+    retriever = FaissRetriever(client=get_client())
+    hits = retriever.retrieve(payload.message, top_k=3)
+
+    context_chunks = [(h.chunk, h.score) for h in hits[:2]]
 
 
-    citations: List[Citation] = []
-    for chunk, score in retrieved:
-        snippet = chunk.text[:280].strip()
-        citations.append(Citation(doc_id=chunk.doc_id, snippet=snippet, score=float(score)))
+    citations: List[Citation] = [
+        Citation(
+            doc_id=h.chunk.doc_id,
+            snippet=h.chunk.text[:300].strip(),
+            score=float(round(h.score, 4)),
+        )
+        for h in hits
+    ]
 
     logger.info(
-        f"request_id={request_id} retrieval_count={len(citations)} "
-        f"retrieval_docs={[c.doc_id for c in citations]}"
+        f"request_id={request_id} retriever=faiss retrieval_count={len(citations)} "
+        f"retrieval_docs={[c.doc_id for c in citations]} scores={[round(c.score, 3) for c in citations]}"
     )
 
     llm_out = specialist_generate(
@@ -76,23 +71,27 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
         model="gpt-4o-mini",
     )
 
+    draft_reply: str = llm_out.get(
+        "draft_reply",
+        "Recebemos seu chamado e já iniciamos a análise. Para avançar, poderia confirmar (1) ID/e-mail, (2) quando começou, e (3) passos para reproduzir?",
+    )
 
-    suggested_actions = []
+    diagnostic_questions: List[str] = llm_out.get(
+        "diagnostic_questions",
+        [
+            "Você pode informar o e-mail/ID do usuário afetado?",
+            "Quando o problema começou e com que frequência acontece?",
+            "Você consegue reproduzir? Se sim, quais passos?",
+        ],
+    )
 
-    if not citations:
-        suggested_actions = [
-            "Confirmar escopo/impacto (quantos usuários afetados)",
-            "Coletar evidências (prints, logs, horário aproximado)",
-            "Solicitar informações mínimas antes de aplicar um procedimento",
-        ]
+    suggested_actions: List[str] = llm_out.get("suggested_actions", [])
+
+    logger.info(f"request_id={request_id} specialist_model=gpt-4o-mini specialist_ok=True")
 
     summary = payload.message.strip()[:180]
+    risk_flags: List[str] = []
 
-    draft_reply = []
-    diagnostic_questions = []
-
-    draft_reply = llm_out.get("draft_reply", draft_reply)
-    diagnostic_questions = llm_out.get("diagnostic_questions", diagnostic_questions)
 
     logger.info(f"request_id={request_id} specialist_model=gpt-4o-mini specialist_ok=True")
 
@@ -103,7 +102,7 @@ def analyze_ticket_service(payload: TicketInput) -> TicketOutput:
         "latency_ms": round(elapsed_ms, 2),
         "tokens": None,
         "cost_usd": None,
-        "model": None,
+        "model": "gpt-4o-mini",
         "fallback_used": False,
     }
     logger.info(
